@@ -1,0 +1,83 @@
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FURIOUS DRIVE</title><style>
+*{box-sizing:border-box;font-family:Arial}body{margin:0;background:#1a0b3d;color:#fff;text-align:center}
+header{display:flex;justify-content:space-between;padding:10px;background:#2b0f66}
+.logo{font-size:26px;font-weight:900;color:#FFD700}
+.coins{background:#ffd700;color:#000;padding:8px 14px;border-radius:20px;font-weight:900;cursor:pointer}
+#game{width:100%;height:46vh;background:#222;position:relative;overflow:hidden;border:4px solid #00f0ff}
+.car{position:absolute;font-size:38px;text-align:center}
+.car small{display:block;font-size:10px;background:#000;padding:2px;border-radius:8px}
+#you{font-size:50px;z-index:10}
+#hud{display:flex;justify-content:space-around;padding:8px;font-weight:900}
+#controls{display:flex;justify-content:space-around;align-items:center;padding:10px;background:#0f0a2e}
+#wheel{width:140px;height:140px;border-radius:50%;background:conic-gradient(#444,#888,#444);border:8px solid #111;display:flex;align-items:center;justify-content:center;font-size:36px;touch-action:none}
+.pedal{width:65px;height:100px;border-radius:12px;font-weight:900;border:none;color:#fff}
+#gas{background:#00c853}#brake{background:#e53935}#nitro{background:#ffea00;color:#000;width:90px;height:45px;border-radius:20px;font-weight:900;border:none}
+.card{background:#2b0f66;margin:8px;padding:10px;border-radius:14px;text-align:left}
+input{padding:10px;width:70%;border-radius:10px;border:none;margin:4px}
+button{padding:10px 14px;border-radius:10px;border:none;font-weight:900;cursor:pointer;background:#ff0066;color:#fff;margin:4px}
+#shop{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;padding:20px;overflow:auto}
+.carbtn{background:#fff;color:#000}
+.carbtn.active{background:#00f0ff}
+</style></head><body>
+<header><div class="logo">FURIOUS DRIVE ★</div><div>👤 <span id="myUser">Guest</span> | <div class="coins" onclick="openShop()">🪙 <span id="coinBal">500</span> SHOP</div></div></header>
+
+<!-- REGISTER / LOGIN -->
+<div id="auth" class="card"><h3>🏁 JOIN FURIOUS DRIVE</h3>
+<input id="regUser" placeholder="Choose Username e.g Minister123"><br>
+<input id="regPass" type="password" placeholder="Password"><br>
+<button onclick="register()">REGISTER / LOGIN</button><p id="authMsg"></p>
+<p>Your username = your racing ID. Friends invite you with it.</p></div>
+
+<!-- INVITE -->
+<div class="card"><h3>📨 INVITE COMPETITOR</h3>
+<input id="inviteName" placeholder="Enter friend username e.g Zara123"><br>
+<button onclick="invite()">SEND INVITE</button>
+<button onclick="copyInvite()">COPY MY INVITE LINK</button>
+<p id="inviteMsg"></p><div id="lobby"></div></div>
+
+<div id="hud"><div>LAP <span id="lap">1</span>/3</div><div>POS <span id="pos">2</span>/6</div><div><span id="speed">0</span> KM/H</div><div>🚗 <span id="myCarName">Lamborghini</span></div></div>
+<div id="game">
+<div class="car" id="you" style="left:45%;top:60%">🏎️<small id="youLabel">YOU</small></div>
+<div class="car" style="left:20%;top:30%">🚗<small>Camaro - Ada</small></div>
+<div class="car" style="left:60%;top:20%">🚙<small>Lexus - Tobi</small></div>
+<div class="car" style="left:75%;top:50%">🚕<small>Benz - Zara</small></div>
+<div class="car" style="left:35%;top:10%">🚓<small>Ferrari - Jay</small></div>
+<div class="car" style="left:10%;top:60%">🛺<small>Challenger - Ken</small></div>
+</div>
+
+<!-- CAR SELECT -->
+<div class="card"><h3>🏎️ CHOOSE YOUR CAR</h3>
+<button class="carbtn active" onclick="selectCar(this,'Lamborghini Aventador','🏎️',0)">🏎️ Lamborghini Aventador - FREE</button><br>
+<button class="carbtn" onclick="selectCar(this,'Chevrolet Camaro','🚗',500)">🚗 Camaro - 500 🪙</button><br>
+<button class="carbtn" onclick="selectCar(this,'Lexus IS350','🚙',1000)">🚙 Lexus IS350 - 1000 🪙</button><br>
+<button class="carbtn" onclick="selectCar(this,'Benz C300','🚕',1500)">🚕 Benz C300 - 1500 🪙</button><br>
+<button class="carbtn" onclick="selectCar(this,'Ferrari GT','🚓',2500)">🚓 Ferrari GT - 2500 🪙</button><br>
+<button class="carbtn" onclick="selectCar(this,'Dodge Challenger','🛺',2000)">🛺 Dodge Challenger - 2000 🪙</button><br>
+<button onclick="startRace()">▶ START RACE</button></div>
+
+<div id="controls"><div>LAP 1/3<br>POS 2/6</div><div id="wheel">🎡</div><div><button id="nitro">⚡ NITRO</button><br><br><button class="pedal" id="gas">GAS</button><button class="pedal" id="brake">BRAKE</button></div></div>
+
+<div id="shop"><h2>🪙 COIN SHOP</h2><p>Balance: <span id="coinBal2">500</span></p>
+<button onclick="buy(1000,1)">1000 Coins - $1</button><br><br><button onclick="buy(5000,4)">5000 Coins - $4</button><br><br><button onclick="buy(10000,7)">10000 Coins - $7</button><br><br><button onclick="closeShop()">CLOSE</button></div>
+
+<script>
+let coins=500,speed=0,x=45,y=60,lap=1,steer=0,myUser='Guest',myCar='Lamborghini Aventador',myEmoji='🏎️';
+let users=JSON.parse(localStorage.getItem('fd_users')||'{}');
+function register(){let u=document.getElementById('regUser').value.trim();let p=document.getElementById('regPass').value;if(!u||!p){alert('Enter username + password');return}if(users[u]&&users[u]!==p){alert('Username taken! Choose another or enter correct password');return}users[u]=p;localStorage.setItem('fd_users',JSON.stringify(users));myUser=u;document.getElementById('myUser').innerText=u;document.getElementById('youLabel').innerText=u+' - '+myCar;document.getElementById('authMsg').innerText='✅ Welcome '+u+'! Your racing ID: '+u;document.getElementById('auth').style.display='none';}
+function invite(){let f=document.getElementById('inviteName').value.trim();if(!f){alert('Enter friend username');return}if(!users[f]){document.getElementById('inviteMsg').innerHTML='⚠️ '+f+' not registered yet. Share your link, let them register with that username, then invite again.';return}document.getElementById('inviteMsg').innerHTML='✅ Invite sent to <b>'+f+'</b>!';document.getElementById('lobby').innerHTML+='<p>🏁 Lobby: '+myUser+' VS '+f+' - Ready!</p>';alert('Invite sent to '+f+'! They will join your lobby.');}
+function copyInvite(){let link=location.href.split('?')[0]+'?invite='+myUser;navigator.clipboard.writeText(link);alert('Invite link copied: '+link+'\nShare to your friend!');}
+let wheel=document.getElementById('wheel');
+wheel.addEventListener('touchmove',e=>{let t=e.touches[0];let r=wheel.getBoundingClientRect();steer=(t.clientX-(r.left+r.width/2))/50;wheel.style.transform=`rotate(${steer*40}deg)`});
+document.getElementById('gas').addEventListener('touchstart',()=>speed=Math.min(speed+20,180));
+document.getElementById('gas').addEventListener('mousedown',()=>speed=Math.min(speed+20,180));
+document.getElementById('brake').addEventListener('touchstart',()=>speed=Math.max(speed-30,0));
+document.getElementById('nitro').onclick=()=>{speed=Math.min(speed+60,220);coins+=10;update()};
+function update(){document.getElementById('coinBal').innerText=coins;document.getElementById('coinBal2').innerText=coins;document.getElementById('speed').innerText=speed}
+function openShop(){document.getElementById('shop').style.display='block'}function closeShop(){document.getElementById('shop').style.display='none'}
+function buy(a,p){coins+=a;alert('Success! +'+a+' coins for $'+p);update();closeShop()}
+function selectCar(btn,name,emoji,cost){if(cost>0&&coins<cost){alert('Not enough coins! Need '+cost+' - Buy in Shop');openShop();return}if(cost>0){coins-=cost;update()}document.querySelectorAll('.carbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');myCar=name;myEmoji=emoji;document.getElementById('myCarName').innerText=name;document.getElementById('you').innerHTML=emoji+'<small>'+myUser+' - '+name+'</small>';alert(name+' selected!');}
+function startRace(){alert('3...2...1... GO! '+myUser+' in '+myCar);setInterval(()=>{if(speed>0){speed=Math.max(speed-1,0);x+=steer*2;y-=speed/80;if(y<5){y=80;lap++;document.getElementById('lap').innerText=Math.min(lap,3);coins+=50;if(lap>3){alert('🏆 YOU WIN! +500 coins');coins+=500;lap=1}update()}document.getElementById('you').style.left=x+'%';document.getElementById('you').style.top=y+'%';document.getElementById('speed').innerText=speed}},100)}
+// Auto join if invite link
+let inv=new URLSearchParams(location.search).get('invite');if(inv){document.getElementById('inviteMsg').innerHTML='🎉 '+inv+' invited you! Register with your username to join their lobby.'}
+</script></body></html>
